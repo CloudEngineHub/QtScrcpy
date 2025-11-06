@@ -141,6 +141,13 @@ void Dialog::initUI()
     //setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
 
     setWindowTitle(Config::getInstance().getTitle());
+#ifdef Q_OS_LINUX
+    // Set window icon (inherits from application icon set in main.cpp)
+    // If application icon was set, this will use it automatically
+    if (!qApp->windowIcon().isNull()) {
+        setWindowIcon(qApp->windowIcon());
+    }
+#endif
 
 #ifdef Q_OS_WIN32
     WinUtils::setDarkBorderToWindow((HWND)this->winId(), true);
@@ -349,7 +356,6 @@ void Dialog::on_startServerBtn_clicked()
     params.serverRemotePath = Config::getInstance().getServerPath();
     params.pushFilePath = Config::getInstance().getPushFilePath();
     params.gameScript = getGameScript(ui->gameBox->currentText());
-    params.serverVersion = Config::getInstance().getServerVersion();
     params.logLevel = Config::getInstance().getLogLevel();
     params.codecOptions = Config::getInstance().getCodecOptions();
     params.codecName = Config::getInstance().getCodecName();
@@ -379,6 +385,9 @@ void Dialog::on_wirelessConnectBtn_clicked()
     if (!ui->devicePortEdt->currentText().isEmpty()) {
         addr += ":";
         addr += ui->devicePortEdt->currentText().trimmed();
+    } else if (!ui->devicePortEdt->lineEdit()->placeholderText().isEmpty()) {
+        addr += ":";
+        addr += ui->devicePortEdt->lineEdit()->placeholderText().trimmed();
     } else {
         outLog("error: device port is null", false);
         return;
