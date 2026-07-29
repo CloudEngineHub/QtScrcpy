@@ -37,6 +37,14 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     updateBootConfig(true);
 
+    // Intel Mac 上如果配置文件遗留 decodeMode=1，强制重置为 0
+    // （VideoToolbox 选项在 initUI() 中已被移除）
+#if defined(Q_OS_MACOS) && !defined(__arm64__)
+    if (ui->decodeModeBox->currentIndex() != 0) {
+        ui->decodeModeBox->setCurrentIndex(0);
+    }
+#endif
+
     on_useSingleModeCheck_clicked();
     on_updateDevice_clicked();
 
@@ -172,6 +180,19 @@ void Dialog::initUI()
     ui->lockOrientationBox->addItem("270");
     ui->lockOrientationBox->setCurrentIndex(0);
 
+    ui->decodeModeBox->addItem(tr("FFmpeg + OpenGL (Universal Default)"));
+    ui->decodeModeBox->addItem(tr("VideoToolbox + Metal (Apple Silicon Only)"));
+    ui->decodeModeBox->setCurrentIndex(0);
+
+#ifndef Q_OS_MACOS
+    // 非 macOS：隐藏整个解码模式控件行
+    ui->decodeModeLabel->hide();
+    ui->decodeModeBox->hide();
+#elif !defined(__arm64__)
+    // Intel Mac：移除 VideoToolbox 选项，用户只看到 FFmpeg
+    ui->decodeModeBox->removeItem(1);
+#endif
+
     // 加载IP历史记录
     loadIpHistory();
 
@@ -223,6 +244,7 @@ void Dialog::updateBootConfig(bool toView)
         ui->useSingleModeCheck->setChecked(config.simpleMode);
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
         ui->showToolbar->setChecked(config.showToolbar);
+        ui->decodeModeBox->setCurrentIndex(config.decodeMode);
     } else {
         UserBootConfig config;
 
@@ -242,6 +264,7 @@ void Dialog::updateBootConfig(bool toView)
         config.simpleMode = ui->useSingleModeCheck->isChecked();
         config.autoUpdateDevice = ui->autoUpdatecheckBox->isChecked();
         config.showToolbar = ui->showToolbar->isChecked();
+        config.decodeMode = ui->decodeModeBox->currentIndex();
 
         // 保存当前IP到历史记录
         QString currentIp = ui->deviceIpEdt->currentText().trimmed();
@@ -360,6 +383,7 @@ void Dialog::on_startServerBtn_clicked()
     params.codecOptions = Config::getInstance().getCodecOptions();
     params.codecName = Config::getInstance().getCodecName();
     params.scid = QRandomGenerator::global()->bounded(1, 10000) & 0x7FFFFFFF;
+    params.decodeMode = ui->decodeModeBox->currentIndex();
 
     qsc::IDeviceManage::getInstance().connectDevice(params);
 }
@@ -502,7 +526,7 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     if (!success) {
         return;
     }
-    auto videoForm = new VideoForm(ui->framelessCheck->isChecked(), Config::getInstance().getSkin(), ui->showToolbar->isChecked());
+    auto videoForm = new VideoForm(ui->framelessCheck->isChecked(), Config::getInstance().getSkin(), ui->showToolbar->isChecked(), ui->decodeModeBox->currentIndex());
     videoForm->setSerial(serial);
 
     qsc::IDeviceManage::getInstance().getDevice(serial)->setUserData(static_cast<void*>(videoForm));
