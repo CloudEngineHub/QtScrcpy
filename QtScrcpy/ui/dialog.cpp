@@ -1,10 +1,24 @@
 ﻿#include <QDebug>
+#include <QAbstractItemView>
+#include <QCheckBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QGuiApplication>
 #include <QKeyEvent>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QPushButton>
 #include <QRandomGenerator>
+#include <QRegularExpression>
+#include <QSizePolicy>
+#include <QScreen>
+#include <QStyledItemDelegate>
 #include <QTime>
 #include <QTimer>
+#include <QVBoxLayout>
 
 #include "config.h"
 #include "dialog.h"
@@ -17,6 +31,21 @@
 #endif
 
 QString s_keyMapPath = "";
+
+namespace {
+class ComboBoxItemDelegate final : public QStyledItemDelegate
+{
+public:
+    explicit ComboBoxItemDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QSize hint = QStyledItemDelegate::sizeHint(option, index);
+        hint.setHeight(qMax(hint.height(), 30));
+        return hint;
+    }
+};
+} // namespace
 
 const QString &getKeyMapPath()
 {
@@ -46,6 +75,11 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 #endif
 
     on_useSingleModeCheck_clicked();
+    if (QScreen *screen = QGuiApplication::primaryScreen()) {
+        const QRect availableGeometry = screen->availableGeometry();
+        move(availableGeometry.x() + (availableGeometry.width() - width()) / 2,
+             availableGeometry.y() + (availableGeometry.height() - height()) / 2);
+    }
     on_updateDevice_clicked();
 
     connect(&m_autoUpdatetimer, &QTimer::timeout, this, &Dialog::on_updateDevice_clicked);
@@ -170,6 +204,11 @@ void Dialog::initUI()
     ui->maxSizeBox->addItem("1920");
     ui->maxSizeBox->addItem(tr("original"));
 
+    ui->videoSourceBox->addItem(tr("display"));
+    ui->videoSourceBox->addItem(tr("camera"));
+    ui->cameraFacingBox->addItem(tr("back"));
+    ui->cameraFacingBox->addItem(tr("front"));
+
     ui->formatBox->addItem("mp4");
     ui->formatBox->addItem("mkv");
 
@@ -212,6 +251,107 @@ void Dialog::initUI()
         connect(ui->devicePortEdt->lineEdit(), &QWidget::customContextMenuRequested,
                 this, &Dialog::showPortEditMenu);
     }
+    initAdvancedDisplayUi();
+
+    for (QComboBox *comboBox : findChildren<QComboBox *>()) {
+        comboBox->view()->setItemDelegate(new ComboBoxItemDelegate(comboBox->view()));
+    }
+
+    QSizePolicy simpleModePolicy = ui->simpleGroupBox->sizePolicy();
+    simpleModePolicy.setVerticalPolicy(QSizePolicy::Maximum);
+    ui->simpleGroupBox->setSizePolicy(simpleModePolicy);
+
+    QSizePolicy logPolicy = ui->outEdit->sizePolicy();
+    logPolicy.setVerticalPolicy(QSizePolicy::Expanding);
+    ui->outEdit->setSizePolicy(logPolicy);
+    ui->verticalLayout_5->setStretch(0, 0);
+    ui->verticalLayout_5->setStretch(1, 0);
+    ui->verticalLayout_5->setStretch(2, 0);
+    ui->verticalLayout_5->setStretch(3, 1);
+}
+
+void Dialog::initAdvancedDisplayUi()
+{
+    m_advancedDisplayGroup = new QGroupBox(tr("Advanced display"), this);
+    m_advancedDisplayGroup->setCheckable(true);
+    m_advancedDisplayGroup->setChecked(false);
+    auto *layout = new QFormLayout(m_advancedDisplayGroup);
+
+    m_displayModeBox = new QComboBox(m_advancedDisplayGroup);
+    m_displayModeBox->addItem(tr("Primary display"));
+    m_displayModeBox->addItem(tr("Existing display ID"));
+    m_displayModeBox->addItem(tr("New virtual display"));
+    layout->addRow(tr("Display mode"), m_displayModeBox);
+
+    m_displayIdEdit = new QLineEdit(m_advancedDisplayGroup);
+    m_displayIdEdit->setPlaceholderText("1");
+    layout->addRow(tr("Display ID"), m_displayIdEdit);
+
+    m_newDisplayEdit = new QLineEdit(m_advancedDisplayGroup);
+    m_newDisplayEdit->setPlaceholderText("1920x1080/240");
+    layout->addRow(tr("Virtual size / DPI"), m_newDisplayEdit);
+
+    m_cropEdit = new QLineEdit(m_advancedDisplayGroup);
+    m_cropEdit->setPlaceholderText("width:height:x:y");
+    layout->addRow(tr("Crop"), m_cropEdit);
+
+    m_flexDisplayCheck = new QCheckBox(tr("Resize virtual display with window"), m_advancedDisplayGroup);
+    layout->addRow(m_flexDisplayCheck);
+    m_displayImePolicyBox = new QComboBox(m_advancedDisplayGroup);
+    m_displayImePolicyBox->addItem(tr("Server default"), "");
+    m_displayImePolicyBox->addItem("local", "local");
+    m_displayImePolicyBox->addItem("fallback", "fallback");
+    m_displayImePolicyBox->addItem("hide", "hide");
+    layout->addRow(tr("IME policy"), m_displayImePolicyBox);
+    m_vdSystemDecorationsCheck = new QCheckBox(tr("Show system decorations"), m_advancedDisplayGroup);
+    m_vdSystemDecorationsCheck->setChecked(true);
+    layout->addRow(m_vdSystemDecorationsCheck);
+    m_vdDestroyContentCheck = new QCheckBox(tr("Destroy content on close"), m_advancedDisplayGroup);
+    m_vdDestroyContentCheck->setChecked(true);
+    layout->addRow(m_vdDestroyContentCheck);
+    m_keepActiveCheck = new QCheckBox(tr("Keep device active"), m_advancedDisplayGroup);
+    layout->addRow(m_keepActiveCheck);
+    auto *startAppWidget = new QWidget(m_advancedDisplayGroup);
+    auto *startAppLayout = new QHBoxLayout(startAppWidget);
+    startAppLayout->setContentsMargins(0, 0, 0, 0);
+    m_startAppBox = new QComboBox(startAppWidget);
+    m_startAppBox->setEditable(true);
+    m_startAppBox->setInsertPolicy(QComboBox::NoInsert);
+    m_startAppBox->setPlaceholderText("com.android.settings");
+    m_startAppBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_refreshAppsBtn = new QPushButton(tr("refresh"), startAppWidget);
+    m_refreshAppsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_refreshAppsBtn->setFixedWidth(m_refreshAppsBtn->sizeHint().width());
+    startAppLayout->addWidget(m_startAppBox);
+    startAppLayout->addWidget(m_refreshAppsBtn);
+    layout->addRow(tr("Start app"), startAppWidget);
+
+    // Keep infrequently used display parameters out of the primary start
+    // configuration, immediately above the expanding spacer on the right.
+    ui->verticalLayout_6->insertWidget(ui->verticalLayout_6->count() - 1, m_advancedDisplayGroup);
+    connect(m_displayModeBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &Dialog::updateAdvancedDisplayUi);
+    connect(m_flexDisplayCheck, &QCheckBox::toggled, this, &Dialog::updateAdvancedDisplayUi);
+    connect(m_refreshAppsBtn, &QPushButton::clicked, this, &Dialog::on_refreshAppsBtn_clicked);
+    updateAdvancedDisplayUi();
+}
+
+void Dialog::updateAdvancedDisplayUi()
+{
+    if (!m_displayModeBox) {
+        return;
+    }
+    const bool existing = m_displayModeBox->currentIndex() == 1;
+    const bool virtualDisplay = m_displayModeBox->currentIndex() == 2;
+    m_displayIdEdit->setEnabled(existing);
+    m_newDisplayEdit->setEnabled(virtualDisplay);
+    m_flexDisplayCheck->setEnabled(virtualDisplay);
+    if (!virtualDisplay) {
+        m_flexDisplayCheck->setChecked(false);
+    }
+    m_displayImePolicyBox->setEnabled(virtualDisplay);
+    m_vdSystemDecorationsCheck->setEnabled(virtualDisplay);
+    m_vdDestroyContentCheck->setEnabled(virtualDisplay);
+    m_cropEdit->setEnabled(!m_flexDisplayCheck->isChecked());
 }
 
 void Dialog::updateBootConfig(bool toView)
@@ -245,6 +385,23 @@ void Dialog::updateBootConfig(bool toView)
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
         ui->showToolbar->setChecked(config.showToolbar);
         ui->decodeModeBox->setCurrentIndex(config.decodeMode);
+        ui->videoSourceBox->setCurrentIndex(config.videoSource);
+        ui->cameraFacingBox->setCurrentIndex(qBound(0, config.cameraFacing, 1));
+        if (m_advancedDisplayGroup) {
+            m_advancedDisplayGroup->setChecked(config.advancedDisplay);
+            m_displayModeBox->setCurrentIndex(qBound(0, config.displayMode, 2));
+            m_displayIdEdit->setText(config.displayId);
+            m_newDisplayEdit->setText(config.newDisplay);
+            m_cropEdit->setText(config.crop);
+            m_flexDisplayCheck->setChecked(config.flexDisplay);
+            m_displayImePolicyBox->setCurrentIndex(qMax(0, m_displayImePolicyBox->findData(config.displayImePolicy)));
+            m_vdSystemDecorationsCheck->setChecked(config.vdSystemDecorations);
+            m_vdDestroyContentCheck->setChecked(config.vdDestroyContent);
+            m_keepActiveCheck->setChecked(config.keepActive);
+            m_startAppBox->setEditText(config.startApp);
+            updateAdvancedDisplayUi();
+        }
+        updateVideoSourceUi();
     } else {
         UserBootConfig config;
 
@@ -265,6 +422,24 @@ void Dialog::updateBootConfig(bool toView)
         config.autoUpdateDevice = ui->autoUpdatecheckBox->isChecked();
         config.showToolbar = ui->showToolbar->isChecked();
         config.decodeMode = ui->decodeModeBox->currentIndex();
+        config.videoSource = ui->videoSourceBox->currentIndex();
+        config.cameraFacing = qMin(ui->cameraFacingBox->currentIndex(), 1);
+        if (m_advancedDisplayGroup) {
+            config.advancedDisplay = m_advancedDisplayGroup->isChecked();
+            config.displayMode = m_displayModeBox->currentIndex();
+            config.displayId = m_displayIdEdit->text().trimmed();
+            config.newDisplay = m_newDisplayEdit->text().trimmed();
+            config.crop = m_cropEdit->text().trimmed();
+            config.flexDisplay = m_flexDisplayCheck->isChecked();
+            config.displayImePolicy = m_displayImePolicyBox->currentData().toString();
+            config.vdSystemDecorations = m_vdSystemDecorationsCheck->isChecked();
+            config.vdDestroyContent = m_vdDestroyContentCheck->isChecked();
+            config.keepActive = m_keepActiveCheck->isChecked();
+            config.startApp = m_startAppBox->currentData().toString();
+            if (config.startApp.isEmpty()) {
+                config.startApp = m_startAppBox->currentText().trimmed();
+            }
+        }
 
         // 保存当前IP到历史记录
         QString currentIp = ui->deviceIpEdt->currentText().trimmed();
@@ -351,6 +526,29 @@ void Dialog::on_updateDevice_clicked()
     m_adb.execute("", QStringList() << "devices");
 }
 
+void Dialog::updateVideoSourceUi()
+{
+    const bool camera = ui->videoSourceBox->currentIndex() == qsc::VIDEO_SOURCE_CAMERA;
+    ui->cameraFacingLabel->setEnabled(camera);
+    ui->cameraFacingBox->setEnabled(camera);
+    ui->refreshCameraBtn->setEnabled(camera);
+    ui->closeScreenCheck->setEnabled(!camera);
+    ui->stayAwakeCheck->setEnabled(!camera);
+    ui->gameBox->setEnabled(!camera);
+    ui->refreshGameScriptBtn->setEnabled(!camera);
+    ui->applyScriptBtn->setEnabled(!camera);
+    ui->installSndcpyBtn->setEnabled(!camera);
+    ui->startAudioBtn->setEnabled(!camera);
+    if (m_advancedDisplayGroup) {
+        m_advancedDisplayGroup->setEnabled(!camera);
+    }
+}
+
+void Dialog::on_videoSourceBox_currentIndexChanged(int)
+{
+    updateVideoSourceUi();
+}
+
 void Dialog::on_startServerBtn_clicked()
 {
     outLog("start server...", false);
@@ -363,7 +561,13 @@ void Dialog::on_startServerBtn_clicked()
     params.bitRate = getBitRate();
     // on devices with Android >= 10, the capture frame rate can be limited
     params.maxFps = static_cast<quint32>(Config::getInstance().getMaxFps());
-    params.closeScreen = ui->closeScreenCheck->isChecked();
+    params.videoSource = static_cast<qsc::VideoSource>(ui->videoSourceBox->currentIndex());
+    params.cameraFacing = ui->cameraFacingBox->currentIndex() == 1
+            ? qsc::CAMERA_FACING_FRONT
+            : qsc::CAMERA_FACING_BACK;
+    params.cameraId = ui->cameraFacingBox->currentData().toString();
+    const bool camera = params.videoSource == qsc::VIDEO_SOURCE_CAMERA;
+    params.closeScreen = !camera && ui->closeScreenCheck->isChecked();
     params.useReverse = ui->useReverseCheck->isChecked();
     params.display = !ui->notDisplayCheck->isChecked();
     params.renderExpiredFrames = Config::getInstance().getRenderExpiredFrames();
@@ -371,21 +575,256 @@ void Dialog::on_startServerBtn_clicked()
         params.captureOrientationLock = 1;
         params.captureOrientation = (ui->lockOrientationBox->currentIndex() - 1) * 90;
     }
-    params.stayAwake = ui->stayAwakeCheck->isChecked();
+    // Camera sensors expose their video stream in landscape by default. Rotate
+    // the default camera preview to portrait, while preserving an explicit
+    // orientation selected by the user.
+    if (camera && params.captureOrientationLock == 0) {
+        params.captureOrientation = 90;
+    }
+    params.stayAwake = !camera && ui->stayAwakeCheck->isChecked();
     params.recordFile = ui->recordScreenCheck->isChecked();
     params.recordPath = ui->recordPathEdt->text().trimmed();
     params.recordFileFormat = ui->formatBox->currentText().trimmed();
     params.serverLocalPath = getServerPath();
     params.serverRemotePath = Config::getInstance().getServerPath();
     params.pushFilePath = Config::getInstance().getPushFilePath();
-    params.gameScript = getGameScript(ui->gameBox->currentText());
+    params.gameScript = camera ? QString() : getGameScript(ui->gameBox->currentText());
     params.logLevel = Config::getInstance().getLogLevel();
     params.codecOptions = Config::getInstance().getCodecOptions();
     params.codecName = Config::getInstance().getCodecName();
     params.scid = QRandomGenerator::global()->bounded(1, 10000) & 0x7FFFFFFF;
     params.decodeMode = ui->decodeModeBox->currentIndex();
+    // Disabled widgets may remain checked from persisted settings. Advanced
+    // display options are not valid for camera capture, so never copy them
+    // into camera session parameters.
+    if (!camera && m_advancedDisplayGroup && m_advancedDisplayGroup->isChecked()) {
+        const int displayMode = m_displayModeBox->currentIndex();
+        if (displayMode == 1) {
+            bool ok = false;
+            const int displayId = m_displayIdEdit->text().trimmed().toInt(&ok);
+            if (!ok || displayId < 0) {
+                outLog(tr("invalid display ID"));
+                return;
+            }
+            params.displayId = displayId;
+        } else if (displayMode == 2) {
+            params.newDisplay = m_newDisplayEdit->text().trimmed();
+            if (params.newDisplay.isEmpty()) {
+                // Match scrcpy's flex default (1280x960 at 160 dpi) while
+                // keeping the command-line parameter explicit.
+                params.newDisplay = "1280x960/160";
+            }
+            params.flexDisplay = m_flexDisplayCheck->isChecked();
+            params.vdSystemDecorations = m_vdSystemDecorationsCheck->isChecked();
+            params.vdDestroyContent = m_vdDestroyContentCheck->isChecked();
+            params.displayImePolicy = m_displayImePolicyBox->currentData().toString();
+        }
+        params.keepActive = m_keepActiveCheck->isChecked();
+        params.startApp = m_startAppBox->currentData().toString();
+        if (params.startApp.isEmpty()) {
+            params.startApp = m_startAppBox->currentText().trimmed();
+        }
+        // scrcpy forbids crop with flex display. Preserve the entered value
+        // for a later non-flex session, but never pass it to the server.
+        params.crop = params.flexDisplay ? QString() : m_cropEdit->text().trimmed();
+    }
+    if (params.flexDisplay && (params.newDisplay.isEmpty() || !params.display || !params.crop.isEmpty())) {
+        outLog(tr("flex display requires video, a new virtual display, and no crop"));
+        return;
+    }
 
-    qsc::IDeviceManage::getInstance().connectDevice(params);
+    const bool needsVirtualDisplayCheck = !params.newDisplay.isEmpty();
+    if (!camera && !needsVirtualDisplayCheck) {
+        qsc::IDeviceManage::getInstance().connectDevice(params);
+        return;
+    }
+
+    auto *versionAdb = new qsc::AdbProcess(this);
+    connect(versionAdb, &qsc::AdbProcess::adbProcessResult, this,
+            [this, versionAdb, camera, params](qsc::AdbProcess::ADB_EXEC_RESULT result) {
+        if (result == qsc::AdbProcess::AER_SUCCESS_EXEC) {
+            bool ok = false;
+            const int sdk = versionAdb->getStdOut().trimmed().toInt(&ok);
+            const int minimumSdk = camera ? 31 : 29;
+            if (ok && sdk >= minimumSdk) {
+                qsc::IDeviceManage::getInstance().connectDevice(params);
+            } else {
+                outLog(camera ? tr("camera preview requires Android 12 or later")
+                              : tr("virtual display requires Android 10 or later"));
+            }
+            versionAdb->deleteLater();
+        } else if (result == qsc::AdbProcess::AER_ERROR_EXEC
+                   || result == qsc::AdbProcess::AER_ERROR_START
+                   || result == qsc::AdbProcess::AER_ERROR_MISSING_BINARY) {
+            outLog(tr("could not verify Android version for camera preview"));
+            versionAdb->deleteLater();
+        }
+    });
+    versionAdb->execute(params.serial, QStringList() << "shell" << "getprop" << "ro.build.version.sdk");
+}
+
+void Dialog::on_refreshCameraBtn_clicked()
+{
+    const QString serial = ui->serialBox->currentText().trimmed();
+    if (serial.isEmpty()) {
+        outLog(tr("no device"));
+        return;
+    }
+    if (qsc::IDeviceManage::getInstance().getDevice(serial)) {
+        outLog(tr("stop preview first"));
+        return;
+    }
+
+    ui->refreshCameraBtn->setEnabled(false);
+    ui->refreshCameraBtn->setText("...");
+
+    auto *pushAdb = new qsc::AdbProcess(this);
+    connect(pushAdb, &qsc::AdbProcess::adbProcessResult, this,
+            [this, pushAdb, serial](qsc::AdbProcess::ADB_EXEC_RESULT result) {
+        if (result == qsc::AdbProcess::AER_SUCCESS_EXEC) {
+            pushAdb->deleteLater();
+
+            auto *listAdb = new qsc::AdbProcess(this);
+            connect(listAdb, &qsc::AdbProcess::adbProcessResult, this,
+                    [this, listAdb](qsc::AdbProcess::ADB_EXEC_RESULT listResult) {
+                if (listResult == qsc::AdbProcess::AER_SUCCESS_START) {
+                    return;
+                }
+                ui->refreshCameraBtn->setText(tr("refresh"));
+                ui->refreshCameraBtn->setEnabled(ui->videoSourceBox->currentIndex() == qsc::VIDEO_SOURCE_CAMERA);
+
+                if (listResult != qsc::AdbProcess::AER_SUCCESS_EXEC) {
+                    outLog(tr("camera refresh failed"));
+                    listAdb->deleteLater();
+                    return;
+                }
+
+                const QString output = listAdb->getStdOut() + '\n' + listAdb->getErrorOut();
+                const QRegularExpression pattern(R"(--camera-id=(\S+)\s+\(([^,\)]+))");
+                QRegularExpressionMatchIterator matches = pattern.globalMatch(output);
+
+                const int facingIndex = ui->cameraFacingBox->currentIndex();
+                ui->cameraFacingBox->clear();
+                ui->cameraFacingBox->addItem(tr("back"));
+                ui->cameraFacingBox->addItem(tr("front"));
+
+                int cameraCount = 0;
+                while (matches.hasNext()) {
+                    const QRegularExpressionMatch match = matches.next();
+                    const QString cameraId = match.captured(1);
+                    const QString facing = match.captured(2).trimmed();
+                    ui->cameraFacingBox->addItem(QString("%1 (%2)").arg(cameraId, facing), cameraId);
+                    ++cameraCount;
+                }
+
+                ui->cameraFacingBox->setCurrentIndex(qMin(facingIndex, ui->cameraFacingBox->count() - 1));
+                outLog(cameraCount ? tr("camera refreshed") : tr("no camera"));
+                listAdb->deleteLater();
+            });
+
+            QStringList args;
+            args << "shell";
+            args << QString("CLASSPATH=%1").arg(Config::getInstance().getServerPath());
+            args << "app_process" << "/" << "com.genymobile.scrcpy.Server" << "4.1";
+            args << "list_cameras=true" << "log_level=info";
+            listAdb->execute(serial, args);
+        } else if (result == qsc::AdbProcess::AER_ERROR_EXEC
+                   || result == qsc::AdbProcess::AER_ERROR_START
+                   || result == qsc::AdbProcess::AER_ERROR_MISSING_BINARY) {
+            ui->refreshCameraBtn->setText(tr("refresh"));
+            ui->refreshCameraBtn->setEnabled(ui->videoSourceBox->currentIndex() == qsc::VIDEO_SOURCE_CAMERA);
+            outLog(tr("camera refresh failed"));
+            pushAdb->deleteLater();
+        }
+    });
+    pushAdb->push(serial, getServerPath(), Config::getInstance().getServerPath());
+}
+
+void Dialog::on_refreshAppsBtn_clicked()
+{
+    const QString serial = ui->serialBox->currentText().trimmed();
+    if (serial.isEmpty()) {
+        outLog(tr("no device"));
+        return;
+    }
+    if (qsc::IDeviceManage::getInstance().getDevice(serial)) {
+        outLog(tr("stop server first"));
+        return;
+    }
+
+    m_refreshAppsBtn->setEnabled(false);
+    m_refreshAppsBtn->setText("...");
+
+    auto restoreRefreshButton = [this]() {
+        m_refreshAppsBtn->setText(tr("refresh"));
+        m_refreshAppsBtn->setEnabled(ui->videoSourceBox->currentIndex() == qsc::VIDEO_SOURCE_DISPLAY);
+    };
+
+    auto *pushAdb = new qsc::AdbProcess(this);
+    connect(pushAdb, &qsc::AdbProcess::adbProcessResult, this,
+            [this, pushAdb, serial, restoreRefreshButton](qsc::AdbProcess::ADB_EXEC_RESULT result) {
+        if (result == qsc::AdbProcess::AER_SUCCESS_EXEC) {
+            pushAdb->deleteLater();
+
+            auto *listAdb = new qsc::AdbProcess(this);
+            connect(listAdb, &qsc::AdbProcess::adbProcessResult, this,
+                    [this, listAdb, restoreRefreshButton](qsc::AdbProcess::ADB_EXEC_RESULT listResult) {
+                if (listResult == qsc::AdbProcess::AER_SUCCESS_START) {
+                    return;
+                }
+                restoreRefreshButton();
+
+                if (listResult != qsc::AdbProcess::AER_SUCCESS_EXEC) {
+                    outLog(tr("app refresh failed"));
+                    listAdb->deleteLater();
+                    return;
+                }
+
+                const QString selected = m_startAppBox->currentData().toString().isEmpty()
+                        ? m_startAppBox->currentText().trimmed()
+                        : m_startAppBox->currentData().toString();
+                const QString output = listAdb->getStdOut() + '\n' + listAdb->getErrorOut();
+                const QRegularExpression pattern(
+                        R"(^\s*[\*\-]\s+(.+?)\s+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)\s*$)",
+                        QRegularExpression::MultilineOption);
+                QRegularExpressionMatchIterator matches = pattern.globalMatch(output);
+
+                m_startAppBox->clear();
+                m_startAppBox->addItem(QString(), QString());
+                int appCount = 0;
+                while (matches.hasNext()) {
+                    const QRegularExpressionMatch match = matches.next();
+                    const QString name = match.captured(1).trimmed();
+                    const QString packageName = match.captured(2);
+                    m_startAppBox->addItem(QString("%1 (%2)").arg(name, packageName), packageName);
+                    ++appCount;
+                }
+
+                const int selectedIndex = m_startAppBox->findData(selected);
+                if (selectedIndex >= 0) {
+                    m_startAppBox->setCurrentIndex(selectedIndex);
+                } else {
+                    m_startAppBox->setEditText(selected);
+                }
+                outLog(appCount ? tr("apps refreshed") : tr("no launchable app"));
+                listAdb->deleteLater();
+            });
+
+            QStringList args;
+            args << "shell";
+            args << QString("CLASSPATH=%1").arg(Config::getInstance().getServerPath());
+            args << "app_process" << "/" << "com.genymobile.scrcpy.Server" << "4.1";
+            args << "list_apps=true" << "log_level=info";
+            listAdb->execute(serial, args);
+        } else if (result == qsc::AdbProcess::AER_ERROR_EXEC
+                   || result == qsc::AdbProcess::AER_ERROR_START
+                   || result == qsc::AdbProcess::AER_ERROR_MISSING_BINARY) {
+            restoreRefreshButton();
+            outLog(tr("app refresh failed"));
+            pushAdb->deleteLater();
+        }
+    });
+    pushAdb->push(serial, getServerPath(), Config::getInstance().getServerPath());
 }
 
 void Dialog::on_stopServerBtn_clicked()

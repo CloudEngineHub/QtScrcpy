@@ -2,6 +2,7 @@
 #define VIDEOFORM_H
 
 #include <QPointer>
+#include <QTimer>
 #include <QWidget>
 
 #include "../QtScrcpyCore/include/QtScrcpyCore.h"
@@ -41,6 +42,7 @@ private:
     // VideoToolbox Metal 路径帧回调（仅 macOS arm64）
     void onFrameMetal(void* cvPixelBuffer, int width, int height) override;
     void updateFPS(quint32 fps) override;
+    void onVideoSessionChanged(const QSize &size, bool clientResized) override;
     void grabCursor(bool grab) override;
 
     void updateStyleSheet(bool vertical);
@@ -98,6 +100,10 @@ private:
     QString m_serial;
     int m_decodeMode = 0;
     bool m_metalFirstFrame = true;  // Metal 首次帧标记
+    bool m_flexDisplay = false;
+    bool m_preventAutoResize = false;
+    QTimer m_flexResizeTimer;
+    QSize m_pendingDisplaySize;
 
     //Whether to display the toolbar when connecting a device.
     bool show_toolbar = true;

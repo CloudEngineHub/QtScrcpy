@@ -102,6 +102,12 @@
 #define COMMON_DECODE_MODE_KEY "DecodeMode"
 #define COMMON_DECODE_MODE_DEF 0
 
+#define COMMON_VIDEO_SOURCE_KEY "VideoSource"
+#define COMMON_VIDEO_SOURCE_DEF 0
+
+#define COMMON_CAMERA_FACING_KEY "CameraFacing"
+#define COMMON_CAMERA_FACING_DEF 0
+
 // device config
 #define SERIAL_WINDOW_RECT_KEY_X "WindowRectX"
 #define SERIAL_WINDOW_RECT_KEY_Y "WindowRectY"
@@ -182,6 +188,19 @@ void Config::setUserBootConfig(const UserBootConfig &config)
     m_userData->setValue(COMMON_AUTO_UPDATE_DEVICE_KEY, config.autoUpdateDevice);
     m_userData->setValue(COMMON_SHOW_TOOLBAR_KEY, config.showToolbar);
     m_userData->setValue(COMMON_DECODE_MODE_KEY, config.decodeMode);
+    m_userData->setValue(COMMON_VIDEO_SOURCE_KEY, config.videoSource);
+    m_userData->setValue(COMMON_CAMERA_FACING_KEY, config.cameraFacing);
+    m_userData->setValue("AdvancedDisplay", config.advancedDisplay);
+    m_userData->setValue("DisplayMode", config.displayMode);
+    m_userData->setValue("DisplayId", config.displayId);
+    m_userData->setValue("NewDisplay", config.newDisplay);
+    m_userData->setValue("Crop", config.crop);
+    m_userData->setValue("FlexDisplay", config.flexDisplay);
+    m_userData->setValue("DisplayImePolicy", config.displayImePolicy);
+    m_userData->setValue("VdSystemDecorations", config.vdSystemDecorations);
+    m_userData->setValue("VdDestroyContent", config.vdDestroyContent);
+    m_userData->setValue("KeepActive", config.keepActive);
+    m_userData->setValue("StartApp", config.startApp);
     m_userData->endGroup();
     m_userData->sync();
 }
@@ -207,6 +226,19 @@ UserBootConfig Config::getUserBootConfig()
     config.autoUpdateDevice = m_userData->value(COMMON_AUTO_UPDATE_DEVICE_KEY, COMMON_AUTO_UPDATE_DEVICE_DEF).toBool();
     config.showToolbar =m_userData->value(COMMON_SHOW_TOOLBAR_KEY,COMMON_SHOW_TOOLBAR_DEF).toBool();
     config.decodeMode = m_userData->value(COMMON_DECODE_MODE_KEY, COMMON_DECODE_MODE_DEF).toInt();
+    config.videoSource = m_userData->value(COMMON_VIDEO_SOURCE_KEY, COMMON_VIDEO_SOURCE_DEF).toInt();
+    config.cameraFacing = m_userData->value(COMMON_CAMERA_FACING_KEY, COMMON_CAMERA_FACING_DEF).toInt();
+    config.advancedDisplay = m_userData->value("AdvancedDisplay", false).toBool();
+    config.displayMode = m_userData->value("DisplayMode", 0).toInt();
+    config.displayId = m_userData->value("DisplayId", "").toString();
+    config.newDisplay = m_userData->value("NewDisplay", "").toString();
+    config.crop = m_userData->value("Crop", "").toString();
+    config.flexDisplay = m_userData->value("FlexDisplay", false).toBool();
+    config.displayImePolicy = m_userData->value("DisplayImePolicy", "").toString();
+    config.vdSystemDecorations = m_userData->value("VdSystemDecorations", true).toBool();
+    config.vdDestroyContent = m_userData->value("VdDestroyContent", true).toBool();
+    config.keepActive = m_userData->value("KeepActive", false).toBool();
+    config.startApp = m_userData->value("StartApp", "").toString();
     m_userData->endGroup();
     return config;
 }
