@@ -198,6 +198,14 @@ void Dialog::initUI()
 
     ui->bitRateEdit->setValidator(new QIntValidator(1, 99999, this));
 
+    ui->presetConfigBtn->setVisible(false);
+
+    // Populate the codec-mode combo. Index 0 is the static "Default (Auto)"
+    // item from the .ui; every registered encoder preset is appended below it.
+    for (const EncoderPreset &preset : EncoderPresetRegistry::all()) {
+        ui->codecModeBox->addItem(preset.displayName);
+    }
+
     ui->maxSizeBox->addItem("640");
     ui->maxSizeBox->addItem("720");
     ui->maxSizeBox->addItem("1080");
@@ -423,6 +431,12 @@ void Dialog::updateBootConfig(bool toView)
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
         ui->showToolbar->setChecked(config.showToolbar);
         ui->decodeModeBox->setCurrentIndex(config.decodeMode);
+        ui->codecModeBox->setCurrentIndex(config.codecModeIndex);
+
+        // Restore encoder preset dialog state (if dialog was previously opened)
+        if (m_presetDialog) {
+            m_presetDialog->setLevel(config.presetLevel);
+        }
         ui->videoSourceBox->setCurrentIndex(config.videoSource);
         ui->cameraFacingBox->setCurrentIndex(qBound(0, config.cameraFacing, 1));
         if (m_advancedDisplayGroup) {
@@ -441,7 +455,7 @@ void Dialog::updateBootConfig(bool toView)
         }
         updateVideoSourceUi();
     } else {
-        UserBootConfig config;
+        UserBootConfig config = Config::getInstance().getUserBootConfig();
 
         config.bitRate = getBitRate();
         config.maxSizeIndex = ui->maxSizeBox->currentIndex();
@@ -460,6 +474,13 @@ void Dialog::updateBootConfig(bool toView)
         config.autoUpdateDevice = ui->autoUpdatecheckBox->isChecked();
         config.showToolbar = ui->showToolbar->isChecked();
         config.decodeMode = ui->decodeModeBox->currentIndex();
+        config.codecModeIndex = ui->codecModeBox->currentIndex();
+
+        // Save encoder preset dialog state (if opened)
+        if (m_presetDialog) {
+            config.presetLevel = m_presetDialog->selectedLevel();
+        }
+
         config.videoSource = ui->videoSourceBox->currentIndex();
         config.cameraFacing = qMin(ui->cameraFacingBox->currentIndex(), 1);
         if (m_advancedDisplayGroup) {
@@ -628,8 +649,31 @@ void Dialog::on_startServerBtn_clicked()
     params.pushFilePath = Config::getInstance().getPushFilePath();
     params.gameScript = camera ? QString() : getGameScript(ui->gameBox->currentText());
     params.logLevel = Config::getInstance().getLogLevel();
-    params.codecOptions = Config::getInstance().getCodecOptions();
-    params.codecName = Config::getInstance().getCodecName();
+    // Apply an encoder preset (when a preset mode is selected) or the ini default.
+    const int codecModeIndex = ui->codecModeBox->currentIndex();
+    if (codecModeIndex > 0) {
+        const EncoderPreset &preset = EncoderPresetRegistry::all().at(codecModeIndex - 1);
+        // Restore from the open dialog's selection, or fall back to the saved tier.
+        int level = 1;
+        if (m_presetDialog) {
+            level = m_presetDialog->selectedLevel();
+        } else {
+            level = Config::getInstance().getUserBootConfig().presetLevel;
+        }
+        QString codecOptions;
+        quint32 bitRate = 0;
+        preset.buildParams(level, codecOptions, bitRate);
+        params.codecOptions = codecOptions;
+        if (!preset.codecName.isEmpty()) {
+            params.codecName = preset.codecName;
+        }
+        if (bitRate > 0) {
+            params.bitRate = bitRate;
+        }
+    } else {
+        params.codecOptions = Config::getInstance().getCodecOptions();
+        params.codecName = Config::getInstance().getCodecName();
+    }
     params.scid = QRandomGenerator::global()->bounded(1, 10000) & 0x7FFFFFFF;
     params.decodeMode = ui->decodeModeBox->currentIndex();
     // Disabled widgets may remain checked from persisted settings. Advanced
@@ -1400,4 +1444,121 @@ void Dialog::showPortEditMenu(const QPoint &pos)
     menu->addAction(clearHistoryAction);
     menu->exec(ui->devicePortEdt->lineEdit()->mapToGlobal(pos));
     delete menu;
+}
+
+
+void Dialog::on_codecModeBox_currentIndexChanged(int index)
+{
+    // Block signals while updating bitrate to avoid recursive calls
+    ui->bitRateEdit->blockSignals(true);
+    ui->bitRateBox->blockSignals(true);
+
+    const EncoderPreset *preset = nullptr;
+    if (index > 0) {
+        preset = &EncoderPresetRegistry::all().at(index - 1);
+    }
+
+    if (index == 0) {
+        // Default: restore previous settings
+        if (m_prevBitRate == 0) {
+            ui->bitRateEdit->setText("2");
+            ui->bitRateBox->setCurrentText("Mbps");
+        } else if (m_prevBitRate % 1000000 == 0) {
+            ui->bitRateEdit->setText(QString::number(m_prevBitRate / 1000000));
+            ui->bitRateBox->setCurrentText("Mbps");
+        } else {
+            ui->bitRateEdit->setText(QString::number(m_prevBitRate / 1000));
+            ui->bitRateBox->setCurrentText("Kbps");
+        }
+        // Restore previous max size
+        ui->maxSizeBox->setCurrentIndex(m_prevMaxSizeIndex);
+    } else {
+        // Preset mode: save current settings for Default-mode restoration
+        m_prevBitRate = getBitRate();
+        m_prevMaxSizeIndex = ui->maxSizeBox->currentIndex();
+
+        // Sync bitrate & maxSize to match the saved encoder tier
+        UserBootConfig config = Config::getInstance().getUserBootConfig();
+        int level = config.presetLevel;
+        quint32 bitrate = preset->levelBitRate(level);
+        if (bitrate > 0) {
+            if (bitrate % 1000000 == 0) {
+                ui->bitRateEdit->setText(QString::number(bitrate / 1000000));
+                ui->bitRateBox->setCurrentText("Mbps");
+            } else {
+                ui->bitRateEdit->setText(QString::number(bitrate / 1000));
+                ui->bitRateBox->setCurrentText("Kbps");
+            }
+        }
+        int maxSizeIdx = preset->levelMaxSizeIndex(level);
+        if (maxSizeIdx >= 0) {
+            ui->maxSizeBox->setCurrentIndex(maxSizeIdx);
+        }
+    }
+
+    // Show the encoder settings button only for presets with adjustable tiers
+    ui->presetConfigBtn->setVisible(preset && preset->levelCount() >= 2);
+
+    ui->bitRateEdit->blockSignals(false);
+    ui->bitRateBox->blockSignals(false);
+}
+
+void Dialog::on_presetConfigBtn_clicked()
+{
+    const int codecModeIndex = ui->codecModeBox->currentIndex();
+    if (codecModeIndex <= 0) {
+        return;
+    }
+    const EncoderPreset &preset = EncoderPresetRegistry::all().at(codecModeIndex - 1);
+
+    // (Re)create the dialog when the selected preset changes.
+    if (!m_presetDialog || m_presetDialog->presetId() != preset.id) {
+        m_presetDialog = new PresetConfigDialog(preset, this);
+        // Only restore the saved tier on first creation — subsequent opens
+        // preserve the user's last selection in the dialog.
+        UserBootConfig bootConfig = Config::getInstance().getUserBootConfig();
+        m_presetDialog->setLevel(bootConfig.presetLevel);
+
+        // Sync bitrate & maxSize UI in real-time as the user switches tiers.
+        connect(m_presetDialog.data(), &PresetConfigDialog::levelChanged,
+                this, &Dialog::syncPresetLevelToUi);
+    }
+
+    m_presetDialog->exec();
+
+    // Sync after dialog closes — covers the case where the initial tier was
+    // restored via setLevel() above and no levelChanged signal fired.
+    syncPresetLevelToUi();
+}
+
+void Dialog::syncPresetLevelToUi()
+{
+    const int codecModeIndex = ui->codecModeBox->currentIndex();
+    if (codecModeIndex <= 0 || !m_presetDialog) {
+        return;
+    }
+    const EncoderPreset &preset = EncoderPresetRegistry::all().at(codecModeIndex - 1);
+    int level = m_presetDialog->selectedLevel();
+
+    // Update bitrate
+    quint32 bitrate = preset.levelBitRate(level);
+    if (bitrate > 0) {
+        ui->bitRateEdit->blockSignals(true);
+        ui->bitRateBox->blockSignals(true);
+        if (bitrate % 1000000 == 0) {
+            ui->bitRateEdit->setText(QString::number(bitrate / 1000000));
+            ui->bitRateBox->setCurrentText("Mbps");
+        } else {
+            ui->bitRateEdit->setText(QString::number(bitrate / 1000));
+            ui->bitRateBox->setCurrentText("Kbps");
+        }
+        ui->bitRateEdit->blockSignals(false);
+        ui->bitRateBox->blockSignals(false);
+    }
+
+    // Update max size (only when the tier prescribes one)
+    int maxSizeIdx = preset.levelMaxSizeIndex(level);
+    if (maxSizeIdx >= 0) {
+        ui->maxSizeBox->setCurrentIndex(maxSizeIdx);
+    }
 }
