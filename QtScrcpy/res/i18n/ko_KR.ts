@@ -43,6 +43,277 @@
         <source>Clear History</source>
         <translation>기록 지우기</translation>
     </message>
+    <message>
+        <source>display</source>
+        <translation>디스플레이</translation>
+    </message>
+    <message>
+        <source>camera</source>
+        <translation>카메라</translation>
+    </message>
+    <message>
+        <source>back</source>
+        <translation>후면</translation>
+    </message>
+    <message>
+        <source>front</source>
+        <translation>전면</translation>
+    </message>
+    <message>
+        <source>Start Config</source>
+        <translation>시작 구성</translation>
+    </message>
+    <message>
+        <source>Advanced Display</source>
+        <translation>고급 디스플레이</translation>
+    </message>
+    <message>
+        <source>Advanced Config</source>
+        <translation>고급 설정</translation>
+    </message>
+    <message>
+        <source>Advanced display</source>
+        <translation>고급 디스플레이</translation>
+    </message>
+    <message>
+        <source>Primary display</source>
+        <translation>기본 디스플레이</translation>
+    </message>
+    <message>
+        <source>Existing display ID</source>
+        <translation>기존 디스플레이 ID</translation>
+    </message>
+    <message>
+        <source>New virtual display</source>
+        <translation>새 가상 디스플레이</translation>
+    </message>
+    <message>
+        <source>Display mode</source>
+        <translation>디스플레이 모드</translation>
+    </message>
+    <message>
+        <source>Display ID</source>
+        <translation>디스플레이 ID</translation>
+    </message>
+    <message>
+        <source>Virtual size / DPI</source>
+        <translation>가상 크기 / DPI</translation>
+    </message>
+    <message>
+        <source>Crop</source>
+        <translation>자르기</translation>
+    </message>
+    <message>
+        <source>Resize virtual display with window</source>
+        <translation>창 크기에 맞춰 가상 디스플레이 조정</translation>
+    </message>
+    <message>
+        <source>Server default</source>
+        <translation>서버 기본값</translation>
+    </message>
+    <message>
+        <source>IME policy</source>
+        <translation>IME 정책</translation>
+    </message>
+    <message>
+        <source>Show system decorations</source>
+        <translation>시스템 장식 표시</translation>
+    </message>
+    <message>
+        <source>Destroy content on close</source>
+        <translation>닫을 때 콘텐츠 삭제</translation>
+    </message>
+    <message>
+        <source>Keep device active</source>
+        <translation>기기 활성 유지</translation>
+    </message>
+    <message>
+        <source>refresh</source>
+        <translation>새로 고침</translation>
+    </message>
+    <message>
+        <source>Start app</source>
+        <translation>앱 시작</translation>
+    </message>
+    <message>
+        <source>Application configuration</source>
+        <translation>애플리케이션 설정</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>자동</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>언어</translation>
+    </message>
+    <message>
+        <source>Window title</source>
+        <translation>창 제목</translation>
+    </message>
+    <message>
+        <source>Push file path</source>
+        <translation>파일 전송 경로</translation>
+    </message>
+    <message>
+        <source>Unlimited</source>
+        <translation>제한 없음</translation>
+    </message>
+    <message>
+        <source>Maximum FPS</source>
+        <translation>최대 FPS</translation>
+    </message>
+    <message>
+        <source>Render expired video frames</source>
+        <translation>만료된 비디오 프레임 렌더링</translation>
+    </message>
+    <message>
+        <source>Software OpenGL</source>
+        <translation>소프트웨어 OpenGL</translation>
+    </message>
+    <message>
+        <source>OpenGL ES</source>
+        <translation>OpenGL ES</translation>
+    </message>
+    <message>
+        <source>Desktop OpenGL</source>
+        <translation>데스크톱 OpenGL</translation>
+    </message>
+    <message>
+        <source>Takes effect after restarting QtScrcpy.</source>
+        <translation>QtScrcpy를 다시 시작한 후 적용됩니다.</translation>
+    </message>
+    <message>
+        <source>OpenGL backend</source>
+        <translation>OpenGL 백엔드</translation>
+    </message>
+    <message>
+        <source>Device server path</source>
+        <translation>기기 서버 경로</translation>
+    </message>
+    <message>
+        <source>Use bundled ADB</source>
+        <translation>내장 ADB 사용</translation>
+    </message>
+    <message>
+        <source>ADB executable</source>
+        <translation>ADB 실행 파일</translation>
+    </message>
+    <message>
+        <source>Codec options</source>
+        <translation>코덱 옵션</translation>
+    </message>
+    <message>
+        <source>Codec name</source>
+        <translation>코덱 이름</translation>
+    </message>
+    <message>
+        <source>Log level</source>
+        <translation>로그 수준</translation>
+    </message>
+    <message>
+        <source>Open Config Directory</source>
+        <translation>구성 디렉터리 열기</translation>
+    </message>
+    <message>
+        <source>Open Keymap Directory</source>
+        <translation>키맵 디렉터리 열기</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>저장</translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation>저장 실패</translation>
+    </message>
+    <message>
+        <source>Unable to save config.ini.</source>
+        <translation>config.ini를 저장할 수 없습니다.</translation>
+    </message>
+    <message>
+        <source>Configuration saved</source>
+        <translation>구성을 저장했습니다</translation>
+    </message>
+    <message>
+        <source>The settings were saved to config.ini. Restart QtScrcpy for all changes to take effect.</source>
+        <translation>설정이 config.ini에 저장되었습니다. 모든 변경 사항을 적용하려면 QtScrcpy를 다시 시작하세요.</translation>
+    </message>
+    <message>
+        <source>Open directory failed</source>
+        <translation>디렉터리를 열지 못했습니다</translation>
+    </message>
+    <message>
+        <source>invalid display ID</source>
+        <translation>잘못된 디스플레이 ID</translation>
+    </message>
+    <message>
+        <source>flex display requires video, a new virtual display, and no crop</source>
+        <translation>유연한 디스플레이에는 비디오, 새 가상 디스플레이 및 자르기 없음이 필요합니다</translation>
+    </message>
+    <message>
+        <source>camera preview requires Android 12 or later</source>
+        <translation>카메라 미리보기에는 Android 12 이상이 필요합니다</translation>
+    </message>
+    <message>
+        <source>virtual display requires Android 10 or later</source>
+        <translation>가상 디스플레이에는 Android 10 이상이 필요합니다</translation>
+    </message>
+    <message>
+        <source>could not verify Android version for camera preview</source>
+        <translation>카메라 미리보기용 Android 버전을 확인할 수 없습니다</translation>
+    </message>
+    <message>
+        <source>no device</source>
+        <translation>기기가 없습니다</translation>
+    </message>
+    <message>
+        <source>stop preview first</source>
+        <translation>먼저 미리 보기를 중지하세요</translation>
+    </message>
+    <message>
+        <source>camera refresh failed</source>
+        <translation>카메라 새로 고침에 실패했습니다</translation>
+    </message>
+    <message>
+        <source>camera refreshed</source>
+        <translation>카메라를 새로 고쳤습니다</translation>
+    </message>
+    <message>
+        <source>no camera</source>
+        <translation>카메라 없음</translation>
+    </message>
+    <message>
+        <source>stop server first</source>
+        <translation>먼저 서버를 중지하세요</translation>
+    </message>
+    <message>
+        <source>app refresh failed</source>
+        <translation>앱 새로 고침에 실패했습니다</translation>
+    </message>
+    <message>
+        <source>apps refreshed</source>
+        <translation>앱을 새로 고쳤습니다</translation>
+    </message>
+    <message>
+        <source>no launchable app</source>
+        <translation>실행 가능한 앱이 없습니다</translation>
+    </message>
+</context>
+<context>
+    <name>PresetConfigDialog</name>
+    <message>
+        <source>Settings</source>
+        <translation>설정</translation>
+    </message>
+    <message>
+        <source>Encoding Optimization Level</source>
+        <translation>인코딩 최적화 레벨</translation>
+    </message>
+    <message>
+        <source>Profile:</source>
+        <translation>프로필:</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -68,11 +339,11 @@
     </message>
     <message>
         <source>If you need more professional PC remote software, you can try the following software:</source>
-        <translation type="unfinished"></translation>
+        <translation>더 전문적인 PC 원격 제어 소프트웨어가 필요하다면 다음 소프트웨어를 사용해 보세요:</translation>
     </message>
     <message>
         <source>QuickDesk</source>
-        <translation type="unfinished"></translation>
+        <translation>QuickDesk</translation>
     </message>
     <message>
         <source>You can contact me with telegram &lt;https://t.me/+Ylf_5V_rDCMyODQ1&gt;</source>
@@ -86,48 +357,8 @@
         <translation>도구</translation>
     </message>
     <message>
-        <source>full screen</source>
-        <translation>전체 화면</translation>
-    </message>
-    <message>
-        <source>expand notify</source>
-        <translation>확장 알림</translation>
-    </message>
-    <message>
         <source>touch switch</source>
         <translation>터치 스위치</translation>
-    </message>
-    <message>
-        <source>close screen</source>
-        <translation>화면 닫기</translation>
-    </message>
-    <message>
-        <source>power</source>
-        <translation>전ㅇ</translation>
-    </message>
-    <message>
-        <source>volume up</source>
-        <translation>볼륨 높이기</translation>
-    </message>
-    <message>
-        <source>volume down</source>
-        <translation>볼륨 낮추기</translation>
-    </message>
-    <message>
-        <source>app switch</source>
-        <translation>앱 스위치</translation>
-    </message>
-    <message>
-        <source>menu</source>
-        <translation>메뉴</translation>
-    </message>
-    <message>
-        <source>home</source>
-        <translation>home</translation>
-    </message>
-    <message>
-        <source>return</source>
-        <translation>돌ㅇ가기</translation>
     </message>
     <message>
         <source>screen shot</source>
@@ -135,7 +366,7 @@
     </message>
     <message>
         <source>copy clipboard text</source>
-        <translation type="unfinished"></translation>
+        <translation>클립보드 텍스트 복사</translation>
     </message>
     <message>
         <source>open screen</source>
@@ -146,8 +377,64 @@
         <translation>그룹 제어</translation>
     </message>
     <message>
-        <source>edit keymap</source>
-        <translation type="unfinished"></translation>
+        <source>full screen (Ctrl+F)</source>
+        <translation>전체 화면 (Ctrl+F)</translation>
+    </message>
+    <message>
+        <source>expand notify (Ctrl+N)</source>
+        <translation>알림 패널 펼치기 (Ctrl+N)</translation>
+    </message>
+    <message>
+        <source>expand settings panel (Ctrl+Alt+N)</source>
+        <translation>설정 패널 펼치기 (Ctrl+Alt+N)</translation>
+    </message>
+    <message>
+        <source>rotate device (Ctrl+R)</source>
+        <translation>기기 회전 (Ctrl+R)</translation>
+    </message>
+    <message>
+        <source>close screen (Ctrl+O)</source>
+        <translation>화면 닫기 (Ctrl+O)</translation>
+    </message>
+    <message>
+        <source>power (Ctrl+P)</source>
+        <translation>전원 (Ctrl+P)</translation>
+    </message>
+    <message>
+        <source>volume up (Ctrl+Up)</source>
+        <translation>볼륨 높이기 (Ctrl+Up)</translation>
+    </message>
+    <message>
+        <source>volume down (Ctrl+Down)</source>
+        <translation>볼륨 낮추기 (Ctrl+Down)</translation>
+    </message>
+    <message>
+        <source>app switch (Ctrl+S)</source>
+        <translation>앱 전환 (Ctrl+S)</translation>
+    </message>
+    <message>
+        <source>menu (Ctrl+M)</source>
+        <translation>메뉴 (Ctrl+M)</translation>
+    </message>
+    <message>
+        <source>home (Ctrl+H)</source>
+        <translation>홈 (Ctrl+H)</translation>
+    </message>
+    <message>
+        <source>return (Ctrl+B)</source>
+        <translation>뒤로 (Ctrl+B)</translation>
+    </message>
+    <message>
+        <source>torch</source>
+        <translation>손전등</translation>
+    </message>
+    <message>
+        <source>zoom out</source>
+        <translation>축소</translation>
+    </message>
+    <message>
+        <source>zoom in</source>
+        <translation>확대</translation>
     </message>
 </context>
 <context>
@@ -357,87 +644,37 @@
         <source>record save path:</source>
         <translation>기록 저장 경로:</translation>
     </message>
-
-<message>
+    <message>
         <source>Codec Mode:</source>
         <translation>코덱 모드：</translation>
     </message>
-<message>
+    <message>
         <source>Default (Auto)</source>
         <translation>기본값（자동）</translation>
     </message>
-<message>
+    <message>
         <source>Encoder selection: Default uses system auto-select; presets enable vendor-specific tuning.</source>
         <translation>인코더 선택：기본값은 시스템 자동 선택. 프리셋은 벤더별 튜닝을 활성화합니다.</translation>
     </message>
-<message>
+    <message>
         <source>Open encoder advanced settings: optimization levels for visual quality and performance.</source>
         <translation>인코더 고급 설정 열기：화질 및 성능 최적화 레벨.</translation>
     </message>
-<message>
+    <message>
         <source>Encoder Settings...</source>
         <translation>인코더 설정...</translation>
     </message>
-</context>
-<context>
-    <name>PresetConfigDialog</name>
     <message>
-        <source>Settings</source>
-        <translation>설정</translation>
+        <source>video source:</source>
+        <translation>비디오 소스:</translation>
     </message>
     <message>
-        <source>MTK Encoder</source>
-        <translation>MTK 인코더</translation>
+        <source>camera:</source>
+        <translation>카메라:</translation>
     </message>
     <message>
-        <source>This feature is for MediaTek (MTK) devices only.
-Using on non-MTK devices may cause encoding failure or visual artifacts.</source>
-        <translation>이 기능은 MediaTek(MTK) 기기 전용입니다.
-비 MTK 기기에서 사용하면 인코딩 실패 또는 화면 이상이 발생할 수 있습니다.</translation>
-    </message>
-    <message>
-        <source>Encoding Optimization Level</source>
-        <translation>인코딩 최적화 레벨</translation>
-    </message>
-    <message>
-        <source>Profile:</source>
-        <translation>프로필:</translation>
-    </message>
-    <message>
-        <source>Game Mode (20Mbps, QP≤28)</source>
-        <translation>게임 모드 (20Mbps, QP≤28)</translation>
-    </message>
-    <message>
-        <source>Balanced (8Mbps, QP≤35)</source>
-        <translation>균형 (8Mbps, QP≤35)</translation>
-    </message>
-    <message>
-        <source>Power Saver (4Mbps, QP≤35)</source>
-        <translation>절전 (4Mbps, QP≤35)</translation>
-    </message>
-    <message>
-        <source>VBR + hard QP cap at 28 + short GOP. The strongest anti-blur shield for real-time gaming.</source>
-        <translation>VBR + QP 하드 상한 28 + 짧은 GOP. 실시간 게임을 위한 최강의 안티 블러 실드.</translation>
-    </message>
-    <message>
-        <source>Standard anti-blur protection with optimal visual quality. Recommended for daily use.</source>
-        <translation>표준 안티 블러 보호, 최적의 화질. 일상 사용에 권장.</translation>
-    </message>
-    <message>
-        <source>Maximum power saving: low-power ME + single ref frame. Saves most encoder power for non-gaming scenarios.</source>
-        <translation>최대 절전: 저전력 ME + 단일 참조 프레임. 비게임 시나리오에서 인코더 전력 최대 절약.</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 28 + short GOP (5 frames). Hard ceiling blocks Sticky QP completely — best for real-time gaming.</source>
-        <translation>VBR + QP 상한 28 + 짧은 GOP (5프레임). 하드 상한이 Sticky QP를 완전히 차단 — 실시간 게임에 최적.</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 35 + standard GOP. Matches default visual quality while preventing QP runaway. Ideal for daily use.</source>
-        <translation>VBR + QP 상한 35 + 표준 GOP. QP 폭주를 방지하며 기본 화질 유지. 일상 사용에 이상적.</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 35 + disabled visual optimizations + low-power ME + single ref frame. Maximum power saving for non-intensive scenarios.</source>
-        <translation>VBR + QP 상한 35 + 비주얼 최적화 비활성화 + 저전력 ME + 단일 참조 프레임. 비집중 시나리오용 최대 절전.</translation>
+        <source>refresh</source>
+        <translation>새로 고침</translation>
     </message>
 </context>
 </TS>

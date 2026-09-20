@@ -187,6 +187,133 @@
         <source>Advanced Display</source>
         <translation>高度な表示</translation>
     </message>
+    <message>
+        <source>Advanced Config</source>
+        <translation>高度な設定</translation>
+    </message>
+    <message>
+        <source>Application configuration</source>
+        <translation>アプリケーション設定</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>自動</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>言語</translation>
+    </message>
+    <message>
+        <source>Window title</source>
+        <translation>ウィンドウタイトル</translation>
+    </message>
+    <message>
+        <source>Push file path</source>
+        <translation>ファイル送信先</translation>
+    </message>
+    <message>
+        <source>Unlimited</source>
+        <translation>無制限</translation>
+    </message>
+    <message>
+        <source>Maximum FPS</source>
+        <translation>最大 FPS</translation>
+    </message>
+    <message>
+        <source>Render expired video frames</source>
+        <translation>期限切れの動画フレームを描画</translation>
+    </message>
+    <message>
+        <source>Software OpenGL</source>
+        <translation>ソフトウェア OpenGL</translation>
+    </message>
+    <message>
+        <source>OpenGL ES</source>
+        <translation>OpenGL ES</translation>
+    </message>
+    <message>
+        <source>Desktop OpenGL</source>
+        <translation>デスクトップ OpenGL</translation>
+    </message>
+    <message>
+        <source>Takes effect after restarting QtScrcpy.</source>
+        <translation>QtScrcpy の再起動後に有効になります。</translation>
+    </message>
+    <message>
+        <source>OpenGL backend</source>
+        <translation>OpenGL バックエンド</translation>
+    </message>
+    <message>
+        <source>Device server path</source>
+        <translation>デバイス側サーバーパス</translation>
+    </message>
+    <message>
+        <source>Use bundled ADB</source>
+        <translation>同梱 ADB を使用</translation>
+    </message>
+    <message>
+        <source>ADB executable</source>
+        <translation>ADB 実行ファイル</translation>
+    </message>
+    <message>
+        <source>Codec options</source>
+        <translation>コーデックオプション</translation>
+    </message>
+    <message>
+        <source>Codec name</source>
+        <translation>コーデック名</translation>
+    </message>
+    <message>
+        <source>Log level</source>
+        <translation>ログレベル</translation>
+    </message>
+    <message>
+        <source>Open Config Directory</source>
+        <translation>設定ディレクトリを開く</translation>
+    </message>
+    <message>
+        <source>Open Keymap Directory</source>
+        <translation>キーマップディレクトリを開く</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>保存</translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation>保存に失敗しました</translation>
+    </message>
+    <message>
+        <source>Unable to save config.ini.</source>
+        <translation>config.ini を保存できません。</translation>
+    </message>
+    <message>
+        <source>Configuration saved</source>
+        <translation>設定を保存しました</translation>
+    </message>
+    <message>
+        <source>The settings were saved to config.ini. Restart QtScrcpy for all changes to take effect.</source>
+        <translation>設定を config.ini に保存しました。すべての変更を反映するには QtScrcpy を再起動してください。</translation>
+    </message>
+    <message>
+        <source>Open directory failed</source>
+        <translation>ディレクトリを開けませんでした</translation>
+    </message>
+</context>
+<context>
+    <name>PresetConfigDialog</name>
+    <message>
+        <source>Settings</source>
+        <translation>設定</translation>
+    </message>
+    <message>
+        <source>Encoding Optimization Level</source>
+        <translation>エンコード最適化レベル</translation>
+    </message>
+    <message>
+        <source>Profile:</source>
+        <translation>プロファイル：</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -529,87 +656,25 @@
         <source>refresh</source>
         <translation>更新</translation>
     </message>
-
-<message>
+    <message>
         <source>Codec Mode:</source>
         <translation>コーデックモード：</translation>
     </message>
-<message>
+    <message>
         <source>Default (Auto)</source>
         <translation>デフォルト（自動）</translation>
     </message>
-<message>
+    <message>
         <source>Encoder selection: Default uses system auto-select; presets enable vendor-specific tuning.</source>
         <translation>エンコーダー選択：デフォルトはシステム自動選択。プリセットはベンダー固有のチューニングを有効にします。</translation>
     </message>
-<message>
+    <message>
         <source>Open encoder advanced settings: optimization levels for visual quality and performance.</source>
         <translation>エンコーダーの詳細設定を開く：画質とパフォーマンスの最適化レベル。</translation>
     </message>
-<message>
+    <message>
         <source>Encoder Settings...</source>
         <translation>エンコーダー設定...</translation>
-    </message>
-</context>
-<context>
-    <name>PresetConfigDialog</name>
-    <message>
-        <source>Settings</source>
-        <translation>設定</translation>
-    </message>
-    <message>
-        <source>MTK Encoder</source>
-        <translation>MTK エンコーダー</translation>
-    </message>
-    <message>
-        <source>This feature is for MediaTek (MTK) devices only.
-Using on non-MTK devices may cause encoding failure or visual artifacts.</source>
-        <translation>この機能はMediaTek(MTK)デバイス専用です。
-非MTKデバイスで使用すると、エンコード失敗や映像異常が発生する可能性があります。</translation>
-    </message>
-    <message>
-        <source>Encoding Optimization Level</source>
-        <translation>エンコード最適化レベル</translation>
-    </message>
-    <message>
-        <source>Profile:</source>
-        <translation>プロファイル：</translation>
-    </message>
-    <message>
-        <source>Game Mode (20Mbps, QP≤28)</source>
-        <translation>ゲームモード（20Mbps, QP≤28）</translation>
-    </message>
-    <message>
-        <source>Balanced (8Mbps, QP≤35)</source>
-        <translation>バランス（8Mbps, QP≤35）</translation>
-    </message>
-    <message>
-        <source>Power Saver (4Mbps, QP≤35)</source>
-        <translation>省電力（4Mbps, QP≤35）</translation>
-    </message>
-    <message>
-        <source>VBR + hard QP cap at 28 + short GOP. The strongest anti-blur shield for real-time gaming.</source>
-        <translation>VBR + QPハード上限28 + ショートGOP。最強のアンチブラーシールド、リアルタイムゲームに推奨。</translation>
-    </message>
-    <message>
-        <source>Standard anti-blur protection with optimal visual quality. Recommended for daily use.</source>
-        <translation>標準アンチブラー保護、最適な画質。日常使用に推奨。</translation>
-    </message>
-    <message>
-        <source>Maximum power saving: low-power ME + single ref frame. Saves most encoder power for non-gaming scenarios.</source>
-        <translation>最大省電力：低電力ME + 単一参照フレーム。非ゲームシナリオでエンコーダー電力を最大限節約。</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 28 + short GOP (5 frames). Hard ceiling blocks Sticky QP completely — best for real-time gaming.</source>
-        <translation>VBR + QP上限28 + ショートGOP（5フレーム）。Sticky QPを完全にブロックするハードシーリング — リアルタイムゲームに最適。</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 35 + standard GOP. Matches default visual quality while preventing QP runaway. Ideal for daily use.</source>
-        <translation>VBR + QP上限35 + 標準GOP。QPの暴走を防ぎながらデフォルトの画質を維持。日常使用に推奨。</translation>
-    </message>
-    <message>
-        <source>VBR + QP cap at 35 + disabled visual optimizations + low-power ME + single ref frame. Maximum power saving for non-intensive scenarios.</source>
-        <translation>VBR + QP上限35 + ビジュアル最適化無効 + 低電力ME + 単一参照フレーム。非集中シナリオ向け最大省電力。</translation>
     </message>
 </context>
 </TS>

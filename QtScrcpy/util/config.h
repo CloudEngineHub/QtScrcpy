@@ -2,8 +2,10 @@
 #define CONFIG_H
 
 #include <QObject>
+#include <QMap>
 #include <QPointer>
 #include <QRect>
+#include <QVariant>
 
 struct UserBootConfig
 {
@@ -63,6 +65,8 @@ public:
     QString getLogLevel();
     QString getCodecOptions();
     QString getCodecName();
+    QString getConfigDirectory();
+    bool updateCommonConfig(const QMap<QString, QVariant> &values);
     QStringList getConnectedGroups();
 
     // user data:common
@@ -92,6 +96,9 @@ public:
 private:
     explicit Config(QObject *parent = nullptr);
     const QString &getConfigPath();
+    QString getDefaultConfigPath() const;
+    void initializeConfig();
+    void migrateLegacyConfig(const QString &configPath) const;
 
 private:
     static QString s_configPath;

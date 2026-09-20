@@ -2,11 +2,11 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QStandardPaths>
 
 #include "config.h"
-#ifdef Q_OS_MACOS
-#include "path.h"
-#endif
 
 #define GROUP_COMMON "common"
 
@@ -140,6 +140,7 @@ QString Config::s_configPath = "";
 
 Config::Config(QObject *parent) : QObject(parent)
 {
+    initializeConfig();
     m_settings = new QSettings(getConfigPath() + "/config.ini", QSettings::IniFormat);
     m_userData = new QSettings(getConfigPath() + "/userdata.ini", QSettings::IniFormat);
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -160,21 +161,94 @@ const QString &Config::getConfigPath()
 {
     if (s_configPath.isEmpty()) {
         s_configPath = QString::fromLocal8Bit(qgetenv("QTSCRCPY_CONFIG_PATH"));
-        QFileInfo fileInfo(s_configPath);
-        if (s_configPath.isEmpty() || !fileInfo.isDir()) {
-            // default application dir
-            // mac系统当从finder打开app时，默认工作目录不再是可执行程序的目录了，而是"/"
-            // 而Qt的获取工作目录的api都依赖QCoreApplication的初始化，所以使用mac api获取当前目录
-#ifdef Q_OS_MACOS
-            // get */QtScrcpy.app path
-            s_configPath = Path::GetCurrentPath();
-            s_configPath += "/Contents/MacOS/config";
-#else
-            s_configPath = "config";
-#endif
+        if (s_configPath.isEmpty()) {
+            s_configPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/config";
+        }
+        if (!QDir().mkpath(s_configPath)) {
+            qWarning() << "Failed to create configuration directory:" << s_configPath;
         }
     }
     return s_configPath;
+}
+
+QString Config::getDefaultConfigPath() const
+{
+    return QString::fromLocal8Bit(qgetenv("QTSCRCPY_DEFAULT_CONFIG_PATH"));
+}
+
+void Config::initializeConfig()
+{
+    const QString configPath = getConfigPath();
+    const QString configFile = configPath + "/config.ini";
+    const QString defaultConfigFile = getDefaultConfigPath() + "/config.ini";
+
+    migrateLegacyConfig(configPath);
+
+    // The application bundle is read-only in AppImage and should be treated as
+    // read-only on macOS. Seed a user-owned copy only once, preserving changes
+    // across upgrades. If a package lacks the template, create a complete
+    // default config so the directory always contains config.ini.
+    if (!QFileInfo::exists(configFile)) {
+        if (QFileInfo(defaultConfigFile).isFile() && !QFile::copy(defaultConfigFile, configFile)) {
+            qWarning() << "Failed to copy default configuration to:" << configFile;
+        }
+        if (!QFileInfo::exists(configFile)) {
+            QSettings defaults(configFile, QSettings::IniFormat);
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+            defaults.setIniCodec("UTF-8");
+#endif
+            defaults.beginGroup(GROUP_COMMON);
+            defaults.setValue(COMMON_LANGUAGE_KEY, COMMON_LANGUAGE_DEF);
+            defaults.setValue(COMMON_TITLE_KEY, COMMON_TITLE_DEF);
+            defaults.setValue(COMMON_PUSHFILE_KEY, COMMON_PUSHFILE_DEF);
+            defaults.setValue(COMMON_MAX_FPS_KEY, COMMON_MAX_FPS_DEF);
+            defaults.setValue(COMMON_RENDER_EXPIRED_FRAMES_KEY, COMMON_RENDER_EXPIRED_FRAMES_DEF);
+            defaults.setValue(COMMON_DESKTOP_OPENGL_KEY, COMMON_DESKTOP_OPENGL_DEF);
+            defaults.setValue(COMMON_SERVER_PATH_KEY, COMMON_SERVER_PATH_DEF);
+            defaults.setValue(COMMON_ADB_PATH_KEY, COMMON_ADB_PATH_DEF);
+            defaults.setValue(COMMON_CODEC_OPTIONS_KEY, COMMON_CODEC_OPTIONS_DEF);
+            defaults.setValue(COMMON_CODEC_NAME_KEY, COMMON_CODEC_NAME_DEF);
+            defaults.setValue(COMMON_LOG_LEVEL_KEY, COMMON_LOG_LEVEL_DEF);
+            defaults.endGroup();
+            defaults.sync();
+            if (defaults.status() != QSettings::NoError) {
+                qWarning() << "Failed to create default configuration:" << configFile;
+            }
+        }
+    }
+}
+
+void Config::migrateLegacyConfig(const QString &configPath) const
+{
+    // Older releases stored mutable files beside the executable. Copy them once
+    // so existing users retain their settings when switching to standard paths.
+    if (!qgetenv("QTSCRCPY_CONFIG_PATH").isEmpty()) {
+        return;
+    }
+
+    const QDir userDir(configPath);
+    QStringList legacyPaths;
+    legacyPaths << QString::fromLocal8Bit(qgetenv("QTSCRCPY_LEGACY_CONFIG_PATH"));
+    legacyPaths << QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    QStringList fileNames;
+    fileNames << "config.ini" << "userdata.ini";
+
+    for (int legacyIndex = 0; legacyIndex < legacyPaths.size(); ++legacyIndex) {
+        const QString &legacyPath = legacyPaths.at(legacyIndex);
+        const QDir legacyDir(legacyPath);
+        if (!legacyDir.exists() || legacyDir.absolutePath() == userDir.absolutePath()) {
+            continue;
+        }
+        for (int fileIndex = 0; fileIndex < fileNames.size(); ++fileIndex) {
+            const QString &fileName = fileNames.at(fileIndex);
+            const QString sourceFile = legacyDir.filePath(fileName);
+            const QString targetFile = userDir.filePath(fileName);
+            if (QFileInfo(sourceFile).isFile() && !QFileInfo::exists(targetFile)
+                && !QFile::copy(sourceFile, targetFile)) {
+                qWarning() << "Failed to migrate configuration to:" << targetFile;
+            }
+        }
+    }
 }
 
 void Config::setUserBootConfig(const UserBootConfig &config)
@@ -410,6 +484,22 @@ QString Config::getCodecName()
     codecName = m_settings->value(COMMON_CODEC_NAME_KEY, COMMON_CODEC_NAME_DEF).toString();
     m_settings->endGroup();
     return codecName;
+}
+
+QString Config::getConfigDirectory()
+{
+    return getConfigPath();
+}
+
+bool Config::updateCommonConfig(const QMap<QString, QVariant> &values)
+{
+    m_settings->beginGroup(GROUP_COMMON);
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        m_settings->setValue(it.key(), it.value());
+    }
+    m_settings->endGroup();
+    m_settings->sync();
+    return m_settings->status() == QSettings::NoError;
 }
 
 QStringList Config::getConnectedGroups()
